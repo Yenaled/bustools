@@ -86,6 +86,6 @@ void bustools_tag(Bustools_opt &opt) {
   
   delete[] p; p = nullptr;
   
-  std::cerr << "Read in " << nr << " BUS records << std::endl
+  std::cerr << "Read in " << nr << " BUS records" << std::endl
     << "Tagged = " << nt << std::endl;
 }
