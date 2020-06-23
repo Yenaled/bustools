@@ -54,6 +54,9 @@ struct Bustools_opt {
   std::string capture;
   bool complement = false;
   bool filter = false;
+  
+  /* tag */
+  std::string tag;
 
   /* whitelist */
   int threshold;
