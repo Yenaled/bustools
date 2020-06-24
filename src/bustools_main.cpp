@@ -366,7 +366,7 @@ void parse_ProgramOptions_tag(int argc, char **argv, Bustools_opt& opt) {
     case 'o':
       opt.output = optarg;
       break;
-    case 'w':
+    case 't':
       opt.tag = optarg;
       break;
     default:
