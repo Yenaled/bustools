@@ -49,7 +49,7 @@ void bustools_tag(Bustools_opt &opt) {
       umilen = h.umilen;
     }
     
-    if (umilen > taglen) {
+    if (taglen > umilen) {
       std::cerr << "Error: Tag length of " << taglen << " cannot be greater than UMI length of " << umilen << std::endl;
       exit(1);
     }
