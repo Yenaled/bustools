@@ -10,9 +10,10 @@
 void bustools_tag(Bustools_opt &opt) {  
   uint32_t f = 0;
   uint32_t hamming_dist = 1;
-  uint64_t tag = stringToBinary(opt.tag, f);
+  std::string tag_sequence = opt.tag;
+  uint64_t tag = stringToBinary(tag_sequence, f);
   uint32_t umilen = 0;
-  uint32_t taglen = (opt.tag).size();
+  uint32_t taglen = tag_sequence.size();
   
   BUSHeader h;
   bool outheader_written = false;
@@ -87,5 +88,6 @@ void bustools_tag(Bustools_opt &opt) {
   delete[] p; p = nullptr;
   
   std::cerr << "Read in " << nr << " BUS records" << std::endl
-    << "Tagged = " << nt << std::endl;
+    << "Tagged = " << nt << std::endl
+    << "Tag sequence = " << tag_sequence << std::endl;
 }
