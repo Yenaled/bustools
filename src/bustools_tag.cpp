@@ -65,7 +65,7 @@ void bustools_tag(Bustools_opt &opt) {
 
       for (size_t i = 0; i < rc; i++) {
         bd = p[i];
-        if (hamming(stringToBinary(tag, f), bd.UMI >> 2*(umi_len-taglen), taglen) <= hamming_dist) {
+        if (hamming(tag, bd.UMI >> 2*(umi_len-taglen), taglen) <= hamming_dist) {
           bd.flags = 0;
           bus_out.write((char*) &bd, sizeof(bd));
           ++nt;
