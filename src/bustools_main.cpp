@@ -969,7 +969,11 @@ bool check_ProgramOptions_tag(Bustools_opt& opt) {
     std::cerr << "Error: unable to open output file" << std::endl;
     ret = false;
   }
-
+  
+  if (opt.tag.empty()) {
+    std::cerr << "Error: missing tag sequence" << std::endl;
+    ret = false;
+  }
 
   if (opt.files.size() == 0) {
     std::cerr << "Error: Missing BUS input files" << std::endl;
