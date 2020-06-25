@@ -52,7 +52,7 @@ void bustools_tag(Bustools_opt &opt) {
     }
     
     if (!outheader_written) {
-      if (!keeptag) {
+      if (!keep_tag) {
         h.umilen = umilen - taglen;
       }
       writeHeader(bus_out, h);
