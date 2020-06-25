@@ -10,6 +10,7 @@
 void bustools_tag(Bustools_opt &opt) {  
   uint32_t f = 0;
   uint32_t hamming_dist = 1;
+  bool keep_tag = opt.keep_tag;
   std::string tag_sequence = opt.tag;
   uint64_t tag = stringToBinary(tag_sequence, f);
   uint32_t umilen = 0;
@@ -41,18 +42,21 @@ void bustools_tag(Bustools_opt &opt) {
     std::istream in(inbuf);          
     parseHeader(in, h);
 
-    if (!outheader_written) {
-      writeHeader(bus_out, h);
-      outheader_written = true;
-    }
-
     if (umilen == 0) {
       umilen = h.umilen;
     }
-    
+
     if (taglen > umilen) {
       std::cerr << "Error: Tag length of " << taglen << " cannot be greater than UMI length of " << umilen << std::endl;
       exit(1);
+    }
+    
+    if (!outheader_written) {
+      if (!keeptag) {
+        h.umilen = umilen - taglen;
+      }
+      writeHeader(bus_out, h);
+      outheader_written = true;
     }
 
     int rc = 0;
@@ -68,12 +72,14 @@ void bustools_tag(Bustools_opt &opt) {
         bd = p[i];
         if (hamming(tag, bd.UMI >> 2*(umilen-taglen), taglen) <= hamming_dist) {
           bd.flags = 0;
-          bus_out.write((char*) &bd, sizeof(bd));
           ++nt;
         } else {
           bd.flags = 1;
-          bus_out.write((char*) &bd, sizeof(bd));    
         }
+        if (!keep_tag) {
+          bd.UMI = bd.UMI & ~(~0ULL << (2*(umilen - taglen)));
+        }
+        bus_out.write((char*) &bd, sizeof(bd));
       }
     }
     if (!opt.stream_in) {
