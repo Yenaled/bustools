@@ -351,10 +351,11 @@ void parse_ProgramOptions_dump(int argc, char **argv, Bustools_opt& opt) {
 
 void parse_ProgramOptions_tag(int argc, char **argv, Bustools_opt& opt) {
 
-  const char* opt_string = "o:t:";
+  const char* opt_string = "o:t:k";
   static struct option long_options[] = {
     {"output",          required_argument,  0, 'o'},
     {"tag",             required_argument,  0, 't'},
+    {"keep",            required_argument,  0, 'k'},
     {0,                 0,                  0,  0 }
   };
 
@@ -368,6 +369,9 @@ void parse_ProgramOptions_tag(int argc, char **argv, Bustools_opt& opt) {
       break;
     case 't':
       opt.tag = optarg;
+      break;
+    case 'k':
+      opt.keep_tag = True;
       break;
     default:
       break;
@@ -1415,6 +1419,7 @@ void Bustools_tag_Usage() {
   << "Options: " << std::endl
   << "-o, --output          File for flagged bus output" << std::endl
   << "-t, --tag.            Sequence of the tag contained at the start of each UMI" << std::endl
+  << "-k, --keep.           Keep tag sequence in bus output rather than remove it" << std::endl
   << std::endl;
 }
 
