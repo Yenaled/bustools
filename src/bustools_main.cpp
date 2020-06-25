@@ -1419,7 +1419,7 @@ void Bustools_tag_Usage() {
   << "Options: " << std::endl
   << "-o, --output          File for flagged bus output" << std::endl
   << "-t, --tag.            Sequence of the tag contained at the start of each UMI" << std::endl
-  << "-k, --keep.           Keep tag sequence in bus output rather than remove it" << std::endl
+  << "-k, --keep.           Keep full-length UMI in output rather than truncate it by length of tag" << std::endl
   << std::endl;
 }
 
