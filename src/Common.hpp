@@ -57,6 +57,7 @@ struct Bustools_opt {
   
   /* tag */
   std::string tag;
+  bool keep_tag = false;
 
   /* whitelist */
   int threshold;
