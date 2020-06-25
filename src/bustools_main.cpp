@@ -371,7 +371,7 @@ void parse_ProgramOptions_tag(int argc, char **argv, Bustools_opt& opt) {
       opt.tag = optarg;
       break;
     case 'k':
-      opt.keep_tag = True;
+      opt.keep_tag = true;
       break;
     default:
       break;
