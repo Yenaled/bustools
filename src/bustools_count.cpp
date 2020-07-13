@@ -14,7 +14,7 @@ void bustools_count(Bustools_opt &opt) {
   size_t N = 100000;
   uint32_t bclen = 0;
   BUSData* p = new BUSData[N];
-  bool ignore_umi = false.
+  bool ignore_umi = false;
 
   // read and parse the equivelence class files
 
