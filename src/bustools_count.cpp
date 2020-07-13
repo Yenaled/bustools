@@ -302,7 +302,10 @@ void bustools_count(Bustools_opt &opt) {
 
     parseHeader(in, h);
     bclen = h.bclen;
-    ignore_umi = (h.umilen == 0);
+    if (h.umilen == 0) {
+      ignore_umi = true;
+      std::cout << "IGNORING UMIs" << std::endl;
+    }
     
     int rc = 0;
     while (true) {
