@@ -45,6 +45,7 @@ struct Bustools_opt {
   bool count_em = false;
   bool count_collapse = false;
   bool count_gene_multimapping = false;
+  bool ignore_umi = false;
 
   /* project */
   std::string map;
