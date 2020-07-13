@@ -284,7 +284,7 @@ void bustools_sort(const Bustools_opt& opt) {
       busf_out.write((char*)p,rc*sizeof(BUSData));
     }
     in.close();
-    //std::remove((opt.temp_files  + "0").c_str());
+    std::remove((opt.temp_files  + "0").c_str());
   } else {
     // TODO: test if replacing with k-way merge is better
     // adapted from https://github.com/arq5x/kway-mergesort/blob/master/kwaymergesort.h
