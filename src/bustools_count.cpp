@@ -93,7 +93,7 @@ void bustools_count(Bustools_opt &opt) {
     for (size_t i = 0; i < n; ) {
       size_t j = i+1;
       for (; j < n; j++) {
-        if (v[i].UMI != v[j].UMI) {
+        if (v[i].UMI != v[j].UMI || opt.ignore_umi) {
           break;
         }
       }
@@ -165,7 +165,7 @@ void bustools_count(Bustools_opt &opt) {
     for (size_t i = 0; i < n; ) {
       size_t j = i+1;
       for (; j < n; j++) {
-        if (v[i].UMI != v[j].UMI) {
+        if (v[i].UMI != v[j].UMI || opt.ignore_umi) {
           break;
         }
       }
