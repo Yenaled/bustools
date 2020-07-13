@@ -196,6 +196,10 @@ void bustools_sort(const Bustools_opt& opt) {
     std::istream in(inbuf);
 
     parseHeader(in, h);
+    
+    if (opt.ignore_umi) {
+      h.umilen = 0;
+    }
 
     int rc = 1;
     
@@ -220,9 +224,12 @@ void bustools_sort(const Bustools_opt& opt) {
       for (size_t i = 0; i < rc; ) {
         size_t j = i+1;
         uint32_t c = p[i].count;
+        if (opt.ignore_umi) {
+          p[i].UMI = 0;
+        }
         auto ec = p[i].ec;          
         for (; j < rc; j++) {
-          if (p[i].barcode == p[j].barcode && p[i].UMI == p[j].UMI && p[i].ec == p[j].ec
+          if (p[i].barcode == p[j].barcode && (p[i].UMI == p[j].UMI || opt.ignore_umi) && p[i].ec == p[j].ec
               && (opt.type != SORT_F || p[i].flags == p[j].flags)) {
             c += p[j].count;
           } else {
