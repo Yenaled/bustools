@@ -314,7 +314,7 @@ void bustools_sort(const Bustools_opt& opt) {
       // process the data
       BUSData &m = min.first;
       int i = min.second;
-      if (m.barcode == curr.barcode && m.UMI == curr.UMI && m.ec == curr.ec
+      if (m.barcode == curr.barcode && (m.UMI == curr.UMI || opt.ignore_umi) && m.ec == curr.ec
           && (opt.type != SORT_F || m.flags == curr.flags)) {
         // same data, increase count
         curr.count += m.count;
