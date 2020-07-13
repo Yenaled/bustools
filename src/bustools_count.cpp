@@ -304,7 +304,6 @@ void bustools_count(Bustools_opt &opt) {
     bclen = h.bclen;
     if (h.umilen == 0) {
       ignore_umi = true;
-      std::cout << "IGNORING UMIs" << std::endl;
     }
     
     int rc = 0;
