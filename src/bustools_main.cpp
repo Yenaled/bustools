@@ -87,6 +87,7 @@ void parse_ProgramOptions_sort(int argc, char **argv, Bustools_opt& opt) {
 
   const char* opt_string = "t:o:m:T:cusp";
 
+  int ignoreumi_flag = 0;
   static struct option long_options[] = {
     {"threads",         required_argument,  0, 't'},
     {"output",          required_argument,  0, 'o'},
@@ -96,6 +97,7 @@ void parse_ProgramOptions_sort(int argc, char **argv, Bustools_opt& opt) {
     {"count",           no_argument,        0, 'c'},
     {"flags",           no_argument,        0, 'F'},
     {"pipe",            no_argument,        0, 'p'},
+    {"ignoreumi", no_argument, &ignoreumi_flag, 1},
     {0,                 0,                  0,  0 }
   };
 
@@ -157,6 +159,10 @@ void parse_ProgramOptions_sort(int argc, char **argv, Bustools_opt& opt) {
       break;
     }
   }
+  if (ignoreumi_flag) {
+    opt.ignore_umi = true;
+  }
+
 
   // all other arguments are fast[a/q] files to be read
   while (optind < argc) opt.files.push_back(argv[optind++]);
@@ -1373,6 +1379,7 @@ void Bustools_sort_Usage() {
   << "    --umi             Sort by UMI, barcode, then ec" << std::endl
   << "    --count           Sort by multiplicity, barcode, UMI, then ec" << std::endl
   << "    --flags           Sort by flag, barcode, UMI, then ec" << std::endl
+  << "    --ignoreumi       Remove UMI" << std::endl 
   << std::endl;
 }
 
