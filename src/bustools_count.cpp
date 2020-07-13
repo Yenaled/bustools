@@ -14,6 +14,7 @@ void bustools_count(Bustools_opt &opt) {
   size_t N = 100000;
   uint32_t bclen = 0;
   BUSData* p = new BUSData[N];
+  bool ignore_umi = false.
 
   // read and parse the equivelence class files
 
@@ -93,7 +94,7 @@ void bustools_count(Bustools_opt &opt) {
     for (size_t i = 0; i < n; ) {
       size_t j = i+1;
       for (; j < n; j++) {
-        if (v[i].UMI != v[j].UMI || opt.ignore_umi) {
+        if (v[i].UMI != v[j].UMI || ignore_umi) {
           break;
         }
       }
@@ -142,6 +143,9 @@ void bustools_count(Bustools_opt &opt) {
         }
       }
       double val = j-i;
+      if (ignore_umi) {
+        val = v[i].count;
+      }
       of << n_rows << " " << (column_v[i]+1) << " " << val << "\n";
       n_entries++;
       
@@ -165,7 +169,7 @@ void bustools_count(Bustools_opt &opt) {
     for (size_t i = 0; i < n; ) {
       size_t j = i+1;
       for (; j < n; j++) {
-        if (v[i].UMI != v[j].UMI || opt.ignore_umi) {
+        if (v[i].UMI != v[j].UMI || ignore_umi) {
           break;
         }
       }
@@ -298,6 +302,7 @@ void bustools_count(Bustools_opt &opt) {
 
     parseHeader(in, h);
     bclen = h.bclen;
+    ignore_umi = (h.umilen == 0);
     
     int rc = 0;
     while (true) {
