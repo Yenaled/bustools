@@ -87,7 +87,6 @@ void parse_ProgramOptions_sort(int argc, char **argv, Bustools_opt& opt) {
 
   const char* opt_string = "t:o:m:T:cusp";
 
-  int ignoreumi_flag = 0;
   static struct option long_options[] = {
     {"threads",         required_argument,  0, 't'},
     {"output",          required_argument,  0, 'o'},
@@ -96,8 +95,8 @@ void parse_ProgramOptions_sort(int argc, char **argv, Bustools_opt& opt) {
     {"umi",             no_argument,        0, 'u'},
     {"count",           no_argument,        0, 'c'},
     {"flags",           no_argument,        0, 'F'},
+    {"ignoreumi",       no_argument,        0, 'i'},
     {"pipe",            no_argument,        0, 'p'},
-    {"ignoreumi", no_argument, &ignoreumi_flag, 1},
     {0,                 0,                  0,  0 }
   };
 
@@ -152,6 +151,9 @@ void parse_ProgramOptions_sort(int argc, char **argv, Bustools_opt& opt) {
     case 'F':
       opt.type = SORT_F;
       break;
+    case 'i':
+      opt.type = SORT_IGNOREUMI;
+      break;
     case 'p':
       opt.stream_out = true;
       break;
@@ -159,10 +161,6 @@ void parse_ProgramOptions_sort(int argc, char **argv, Bustools_opt& opt) {
       break;
     }
   }
-  if (ignoreumi_flag) {
-    opt.ignore_umi = true;
-  }
-
 
   // all other arguments are fast[a/q] files to be read
   while (optind < argc) opt.files.push_back(argv[optind++]);
@@ -268,7 +266,6 @@ void parse_ProgramOptions_count(int argc, char **argv, Bustools_opt& opt) {
   const char* opt_string = "o:g:e:t:m";
   int gene_flag = 0;
   int em_flag = 0;
-  int ignoreumi_flag = 0;
   static struct option long_options[] = {
     {"output",          required_argument,  0, 'o'},
     {"genemap",          required_argument,  0, 'g'},
@@ -277,7 +274,6 @@ void parse_ProgramOptions_count(int argc, char **argv, Bustools_opt& opt) {
     {"genecounts", no_argument, &gene_flag, 1},
     {"multimapping", no_argument, 0, 'm'},
     {"em", no_argument, &em_flag, 1},
-    {"ignoreumi", no_argument, &ignoreumi_flag, 1},
     {0,                 0,                  0,  0 }
   };
 
@@ -310,9 +306,6 @@ void parse_ProgramOptions_count(int argc, char **argv, Bustools_opt& opt) {
   }
   if (em_flag) {
     opt.count_em = true;
-  }
-  if (ignoreumi_flag) {
-    opt.ignore_umi = true;
   }
 
   while (optind < argc) opt.files.push_back(argv[optind++]);
@@ -1379,7 +1372,7 @@ void Bustools_sort_Usage() {
   << "    --umi             Sort by UMI, barcode, then ec" << std::endl
   << "    --count           Sort by multiplicity, barcode, UMI, then ec" << std::endl
   << "    --flags           Sort by flag, barcode, UMI, then ec" << std::endl
-  << "    --ignoreumi       Remove UMI" << std::endl 
+  << "    --ignoreumi       Remove UMI and sort by barcode then ec" << std::endl 
   << std::endl;
 }
 
@@ -1444,7 +1437,6 @@ void Bustools_count_Usage() {
   << "-t, --txnames         File with names of transcripts" << std::endl
   << "    --genecounts      Aggregate counts to genes only" << std::endl
   << "    --em              Estimate gene abundances using EM algorithm" << std::endl 
-  << "    --ignoreumi       Don't collapse UMIs" << std::endl 
   << "-m, --multimapping    Include bus records that pseudoalign to multiple genes" << std::endl
   << std::endl;
 }
