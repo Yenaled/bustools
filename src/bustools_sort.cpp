@@ -13,7 +13,7 @@
 
 inline bool cmp1(const BUSData &a, const BUSData &b) {
   if (a.barcode == b.barcode) {
-    if (true/*a.UMI == b.UMI*/) {
+    if (a.UMI == b.UMI) {
       if (a.ec == b.ec) {
         return a.flags < b.flags;
       } else {
@@ -47,6 +47,17 @@ inline bool ncmp1(const TP &a, const TP &b) {
   }
 };
 
+inline bool cmp1_ignoreumi(const BUSData &a, const BUSData &b) {
+  if (a.barcode == b.barcode) {
+      if (a.ec == b.ec) {
+        return a.flags < b.flags;
+      } else {
+        return a.ec < b.ec;
+      }
+  } else { 
+    return a.barcode < b.barcode;
+  }
+};
 
 inline bool cmp2(const BUSData &a, const BUSData &b) {
   if (a.UMI == b.UMI) {
@@ -176,6 +187,10 @@ void bustools_sort(const Bustools_opt& opt) {
       cmp = &cmp4;
       ncmp = &ncmp4;
       break;
+    case SORT_IGNOREUMI:
+      cmp = &cmp1_ignoreumi;
+      ncmp = &ncmp1;
+      break;
     default:
       std::cerr << "ERROR: Unknown sort type" << std::endl;
       exit(1);
@@ -197,7 +212,7 @@ void bustools_sort(const Bustools_opt& opt) {
 
     parseHeader(in, h);
     
-    if (opt.ignore_umi) {
+    if (opt.type == SORT_IGNOREUMI) {
       h.umilen = 0;
     }
 
@@ -224,12 +239,12 @@ void bustools_sort(const Bustools_opt& opt) {
       for (size_t i = 0; i < rc; ) {
         size_t j = i+1;
         uint32_t c = p[i].count;
-        if (opt.ignore_umi) {
+        if (opt.type == SORT_IGNOREUMI) {
           p[i].UMI = 0;
         }
         auto ec = p[i].ec;          
         for (; j < rc; j++) {
-          if (p[i].barcode == p[j].barcode && (p[i].UMI == p[j].UMI || opt.ignore_umi) && p[i].ec == p[j].ec
+          if (p[i].barcode == p[j].barcode && (p[i].UMI == p[j].UMI || opt.type == SORT_IGNOREUMI) && p[i].ec == p[j].ec
               && (opt.type != SORT_F || p[i].flags == p[j].flags)) {
             c += p[j].count;
           } else {
