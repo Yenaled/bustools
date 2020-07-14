@@ -105,7 +105,7 @@ void bustools_count(Bustools_opt &opt) {
         ecs.push_back(v[k].ec);
       }
 
-      int32_t ec = v[i].ec;/*intersect_ecs(ecs, u, genemap, ecmap, ecmapinv, ec2genes);
+      int32_t ec = intersect_ecs(ecs, u, genemap, ecmap, ecmapinv, ec2genes);
       if (ec == -1) {
         ec = intersect_ecs_with_genes(ecs, genemap, ecmap, ecmapinv, ec2genes);              
         if (ec == -1) {
@@ -130,8 +130,7 @@ void bustools_count(Bustools_opt &opt) {
           compacted += j-i-1;
           column_v.push_back(ec);
         }
-      }*/
-      column_v.push_back(ec);
+      }
       i = j; // increment
     }
     std::sort(column_v.begin(), column_v.end());
