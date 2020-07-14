@@ -117,7 +117,11 @@ void bustools_count(Bustools_opt &opt) {
           }
           if (!filter) {
             rescued += j-i;
-            column_v.push_back(ec);
+            if (ignore_umi) {
+              column_v.insert(column_v.end(), v[i].count, ec);
+            } else {
+              column_v.push_back(ec);
+            }
           }
         }
 
@@ -128,7 +132,11 @@ void bustools_count(Bustools_opt &opt) {
         }
         if (!filter) {
           compacted += j-i-1;
-          column_v.push_back(ec);
+          if (ignore_umi) {
+            column_v.insert(column_v.end(), v[i].count, ec);
+          } else {
+            column_v.push_back(ec);
+          }
         }
       }
       i = j; // increment
@@ -143,9 +151,6 @@ void bustools_count(Bustools_opt &opt) {
         }
       }
       double val = j-i;
-      if (ignore_umi) {
-        val = v[i].count;
-      }
       of << n_rows << " " << (column_v[i]+1) << " " << val << "\n";
       n_entries++;
       
