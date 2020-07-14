@@ -190,13 +190,17 @@ void bustools_count(Bustools_opt &opt) {
       if (gn > 0) {
         if (opt.count_gene_multimapping) {
           for (auto x : glist) {
-            column_vp.push_back({x, 1.0/gn});
+            column_vp.push_back({x, (ignore_umi ? v[i].count : 1)*1.0/gn});
           }
         } else {
           if (gn==1) {
-            column_vp.push_back({glist[0],1.0});
+            column_vp.push_back({glist[0],(ignore_umi ? v[i].count : 1)*1.0});
           } else if (opt.count_em) {
-            ambiguous_genes.push_back(std::move(glist));
+            if (ignore_umi) {
+              ambiguous_genes.insert(ambiguous_genes.end(), v[i].count, std::move(glist));
+            } else {
+              ambiguous_genes.push_back(std::move(glist));
+            }
           }
         }
       }
