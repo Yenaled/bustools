@@ -13,7 +13,7 @@
 
 inline bool cmp1(const BUSData &a, const BUSData &b) {
   if (a.barcode == b.barcode) {
-    if (a.UMI == b.UMI) {
+    if (true/*a.UMI == b.UMI*/) {
       if (a.ec == b.ec) {
         return a.flags < b.flags;
       } else {
@@ -29,7 +29,7 @@ inline bool cmp1(const BUSData &a, const BUSData &b) {
 
 inline bool ncmp1(const TP &a, const TP &b) {
   if (a.first.barcode == b.first.barcode) {
-    if (a.first.UMI == b.first.UMI) {
+    if (true/*a.first.UMI == b.first.UMI*/) {
       if (a.first.ec == b.first.ec) {
         if (a.first.flags == b.first.flags) {
           return a.second > b.second;
@@ -319,9 +319,6 @@ void bustools_sort(const Bustools_opt& opt) {
         // same data, increase count
         curr.count += m.count;
       } else {
-        if (1 == 1) {
-          std::cout << "SWITCHING; " << curr.barcode << ";" << m.barcode << " " << curr.UMI << ";" << m.UMI << " " << curr.ec << ";" << m.ec << " " << curr.flags << ";" << m.flags << std::endl;
-        }
         // new data let's output curr, new curr is m
         if (curr.count != 0) {
           busf_out.write((char*)&curr, sizeof(curr));
