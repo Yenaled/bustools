@@ -29,7 +29,7 @@ inline bool cmp1(const BUSData &a, const BUSData &b) {
 
 inline bool ncmp1(const TP &a, const TP &b) {
   if (a.first.barcode == b.first.barcode) {
-    if (true/*a.first.UMI == b.first.UMI*/) {
+    if (a.first.UMI == b.first.UMI) {
       if (a.first.ec == b.first.ec) {
         if (a.first.flags == b.first.flags) {
           return a.second > b.second;
