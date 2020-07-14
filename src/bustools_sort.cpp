@@ -319,7 +319,7 @@ void bustools_sort(const Bustools_opt& opt) {
         // same data, increase count
         curr.count += m.count;
       } else {
-        if (curr.barcode == "AACGTGACAAAACTGACCAA" && curr.ec == 41832) {
+        if (curr.barcode <= 1 && curr.ec == 41832) {
           std::cout << "SWITCHING; " << curr.barcode << ";" << m.barcode << " " << curr.UMI << ";" << m.UMI << " " << curr.ec << ";" << m.ec << " " << curr.flags << ";" << m.flags << std::endl;
         }
         // new data let's output curr, new curr is m
