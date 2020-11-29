@@ -103,6 +103,34 @@ void bustools_count(Bustools_opt &opt) {
       for (size_t k = i; k < j; k++) {
         ecs.push_back(v[k].ec);
       }
+      
+      intersect_genes_of_ecs(ecs,ec2genes, glist);
+      if (glist.size() == 0) {
+        // Gene-intersection zero, check for UMI collision
+        std::vector<int32_t> ecs_within_molecule;
+        while (ecs.size() > 0) {
+          ecs_within_molecule.resize(0);
+          for (size_t k = 0; k < ecs.size(); k++) {
+            ecs_within_molecule.push_back(ecs[k]);
+            intersect_genes_of_ecs(ecs_within_molecule, ec2genes, glist);
+            if (glist.size() == 0) {
+              ecs_within_molecule.pop_back();
+            } else {
+              ecs.erase(ecs.begin() + k);
+              k--;
+            }
+          }
+          int32_t ec = intersect_ecs(ecs_within_molecule, u, genemap, ecmap, ecmapinv, ec2genes);
+          if (ec == -1) {
+            ec = intersect_ecs_with_genes(ecs_within_molecule, genemap, ecmap, ecmapinv, ec2genes);
+            if (ec != -1) {
+              column_v.push_back(ec);
+            }
+          } else {
+            column_v.push_back(ec);
+          }
+        }
+      } else {
 
       int32_t ec = intersect_ecs(ecs, u, genemap, ecmap, ecmapinv, ec2genes);
       if (ec == -1) {
@@ -129,6 +157,7 @@ void bustools_count(Bustools_opt &opt) {
           compacted += j-i-1;
           column_v.push_back(ec);
         }
+      }
       }
       i = j; // increment
     }
@@ -188,6 +217,24 @@ void bustools_count(Bustools_opt &opt) {
             column_vp.push_back({glist[0],1.0});
           } else if (opt.count_em) {
             ambiguous_genes.push_back(std::move(glist));
+          }
+        }
+      } else { // Gene-intersection zero, check for UMI collision
+        std::vector<int32_t> ecs_within_molecule;
+        while (ecs.size() > 0) {
+          ecs_within_molecule.resize(0);
+          for (size_t k = 0; k < ecs.size(); k++) {
+            ecs_within_molecule.push_back(ecs[k]);
+            intersect_genes_of_ecs(ecs_within_molecule, ec2genes, glist);
+            if (glist.size() == 0) {
+              ecs_within_molecule.pop_back();
+            } else {
+              ecs.erase(ecs.begin() + k);
+              k--;
+            }
+          }
+          if (glist.size() == 1) {
+            column_vp.push_back({glist[0],1.0});
           }
         }
       }
