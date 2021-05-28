@@ -680,7 +680,15 @@ void bustools_correct(Bustools_opt &opt)
                   for (uint64_t ambig_bc : ambig_lower)
                   {
                     wl_bc = (ub << (2 * bc2)) | ambig_bc;
-                    of_ambiguous << "," << binaryToString(wl_bc, bclen);
+                    if (!first)
+                    {
+                      of_ambiguous << ",";
+                    }
+                    else
+                    {
+                      first = false;
+                    }
+                    of_ambiguous << binaryToString(wl_bc, bclen);
                   }
                   of_ambiguous << '\n';
                 }
