@@ -43,7 +43,7 @@ int search_for_mismatch(const Roaring &r, const size_t bc, const uint64_t b, uin
   return counts;
 }
 
-int search_for_mismatches(const Roaring &r, const size_t bc, const uint64_t b, uint64_t &c, std::vector<uint64_t> &arr)
+int search_for_mismatches(const Roaring &r, const size_t bc, const uint64_t b, uint64_t &c, std::vector<uint64_t> &ambig)
 {
   int counts = 0;
   if (r.isEmpty())
@@ -65,7 +65,7 @@ int search_for_mismatches(const Roaring &r, const size_t bc, const uint64_t b, u
           {
             c = y;
           }
-          arr.push_back(c);
+          ambig.push_back(y);
           counts++;
         }
       }
@@ -598,8 +598,10 @@ void bustools_correct(Bustools_opt &opt)
           uint64_t lb = b & lower_mask;
           uint64_t ub = (b >> (2 * bc2)) & upper_mask;
           uint64_t lbc = 0, ubc = 0;
-          int correct_lower = search_for_mismatch(correct[ub].second, bc2, lb, lbc);
-          int correct_upper = search_for_mismatch(correct[lb].first, wc_bclen - bc2, ub, ubc);
+          std::vector<uint64_t> ambig_lower;
+          std::vector<uint64_t> ambig_upper;
+          int correct_lower = search_for_mismatches(correct[ub].second, bc2, lb, lbc, ambig_lower);
+          int correct_upper = search_for_mismatches(correct[lb].first, wc_bclen - bc2, ub, ubc, ambig_upper);
           int nc = correct_lower + correct_upper;
           if (nc != 1)
           {
@@ -610,30 +612,53 @@ void bustools_correct(Bustools_opt &opt)
               if (bd.barcode != old_ambiguous_barcode)
               {
                 uint64_t wl_bc;
-                bool print = false;
                 if (correct_lower == 0 && correct_upper > 0)
                 {
                   // upper is super wrong lower is correct
-                  wl_bc = (ubc << (2 * bc2)) | lb;
-                  print = true;
+                  of_ambiguous << binaryToString(bd.barcode, bclen) << "\t";
+                  for (uint64_t ambig_bc : ambig_upper)
+                  {
+                    wl_bc = (ambig_bc << (2 * bc2)) | lb;
+                    std::cout << binaryToString(wl_bc, bclen) << ",";
+                  }
+                  std::cout << '\n';
                 }
                 else if (correct_lower > 1 && correct_upper == 0)
                 {
                   // lower is super wrong upper is correct
                   wl_bc = (ub << (2 * bc2)) | lbc;
-                  print = true;
+                  // upper is super wrong lower is correct
+                  of_ambiguous << binaryToString(bd.barcode, bclen) << "\t";
+                  for (uint64_t ambig_bc : ambig_lower)
+                  {
+                    wl_bc = (ub << (2 * bc2)) | ambig_bc;
+                    std::cout << binaryToString(wl_bc, bclen) << ",";
+                  }
+                  std::cout << '\n';
                 }
                 else if (correct_lower > 1 && correct_upper > 1)
                 {
                   // both lower and upper are super wrong
-                  wl_bc = (ubc << (2 * bc2)) | lbc;
-                  print = true;
+                  // LOWER FIXED
+                  of_ambiguous << binaryToString(bd.barcode, bclen) << "\t";
+                  for (uint64_t ambig_bc : ambig_upper)
+                  {
+                    wl_bc = (ambig_bc << (2 * bc2)) | lb;
+                    std::cout << binaryToString(wl_bc, bclen) << ",";
+                  }
+
+                  // UPPER fixed
+                  wl_bc = (ub << (2 * bc2)) | lbc;
+                  // upper is super wrong lower is correct
+                  for (uint64_t ambig_bc : ambig_lower)
+                  {
+                    wl_bc = (ub << (2 * bc2)) | ambig_bc;
+                    std::cout << binaryToString(wl_bc, bclen) << ",";
+                  }
+                  std::cout << '\n';
                 }
-                if (print)
-                {
-                  of_ambiguous << binaryToString(bd.barcode, bclen) << "\t" << binaryToString(wl_bc, bclen) << "\n";
-                  old_ambiguous_barcode = bd.barcode;
-                }
+
+                old_ambiguous_barcode = bd.barcode;
               }
             }
           }
