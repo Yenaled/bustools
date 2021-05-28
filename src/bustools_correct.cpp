@@ -609,10 +609,28 @@ void bustools_correct(Bustools_opt &opt)
               // dont write duplicate barcodes and only write correct barcode if possible
               if (bd.barcode != old_ambiguous_barcode)
               {
-                if (correct_lower > 0 && correct_upper > 0)
+                uint64_t wl_bc;
+                bool print = false;
+                if (correct_lower == 0 && correct_upper > 0)
                 {
-                  // both lower and upper are wrong, when corrected they form a whitelist bc
-                  uint64_t wl_bc = (ubc << (2 * bc2)) | lbc;
+                  // upper is super wrong lower is correct
+                  wl_bc = (ubc << (2 * bc2)) | lb;
+                  print = true;
+                }
+                else if (correct_lower > 1 && correct_upper == 0)
+                {
+                  // lower is super wrong upper is correct
+                  wl_bc = (ub << (2 * bc2)) | lbc;
+                  print = true;
+                }
+                else if (correct_lower > 1 && correct_upper > 1)
+                {
+                  // both lower and upper are super wrong
+                  wl_bc = (ubc << (2 * bc2)) | lbc;
+                  print = true;
+                }
+                if (print)
+                {
                   of_ambiguous << binaryToString(bd.barcode, bclen) << "\t" << binaryToString(wl_bc, bclen) << "\n";
                   old_ambiguous_barcode = bd.barcode;
                 }
