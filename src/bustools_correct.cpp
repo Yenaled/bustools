@@ -430,13 +430,21 @@ void bustools_correct(Bustools_opt &opt)
   size_t stat_corr = 0;
   size_t stat_uncorr = 0;
   uint64_t old_barcode;
+  uint64_t old_ambiguous_barcode;
 
   bool dump_bool = opt.dump_bool;
+  bool ambiguous_bool = opt.ambiguous_bool;
 
   std::ofstream of;
   if (dump_bool)
   {
     of.open(opt.dump);
+  }
+
+  std::ofstream of_ambiguous;
+  if (ambiguous_bool)
+  {
+    of_ambiguous.open(opt.ambiguous);
   }
 
   std::ifstream wf(opt.whitelist, std::ios::in);
@@ -564,6 +572,14 @@ void bustools_correct(Bustools_opt &opt)
           if (nc != 1)
           {
             stat_uncorr++;
+            if (ambiguous_bool && nc > 1)
+            {
+              if (bd.barcode != old_ambiguous_barcode)
+              {
+                of_ambiguous << binaryToString(bd.barcode, bclen) << "\n";
+                old_barcode = bd.barcode;
+              }
+            }
           }
           else if (nc == 1)
           {

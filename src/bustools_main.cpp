@@ -394,11 +394,12 @@ void parse_ProgramOptions_dump(int argc, char **argv, Bustools_opt &opt)
 void parse_ProgramOptions_correct(int argc, char **argv, Bustools_opt &opt)
 {
 
-  const char *opt_string = "o:w:d:sp";
+  const char *opt_string = "o:w:d:a:sp";
   static struct option long_options[] = {
       {"output", required_argument, 0, 'o'},
       {"whitelist", required_argument, 0, 'w'},
       {"dump", required_argument, 0, 'd'},
+      {"ambiguous", required_argument, 0, 'a'},
       {"split", no_argument, 0, 's'},
       {"pipe", no_argument, 0, 'p'},
       {0, 0, 0, 0}};
@@ -419,6 +420,10 @@ void parse_ProgramOptions_correct(int argc, char **argv, Bustools_opt &opt)
     case 'd':
       opt.dump = optarg;
       opt.dump_bool = true;
+      break;
+    case 'a':
+      opt.ambiguous = optarg;
+      opt.ambiguous_bool = true;
       break;
     case 's':
       opt.split_correct = true;
@@ -1098,11 +1103,24 @@ bool check_ProgramOptions_correct(Bustools_opt &opt)
       ret = false;
     }
   }
+  if (opt.split_correct && opt.ambiguous_bool)
+  {
+    std::cerr << "Error: split and ambiguous are currently incompatible." << std::endl;
+    ret = false;
+  }
   if (opt.dump_bool)
   {
     if (opt.dump.empty())
     {
       std::cerr << "Error: dump file not specified" << std::endl;
+      ret = false;
+    }
+  }
+  if (opt.ambiguous_bool)
+  {
+    if (opt.ambiguous.empty())
+    {
+      std::cerr << "Error: ambiguous file not specified" << std::endl;
       ret = false;
     }
   }
@@ -1160,7 +1178,7 @@ bool check_ProgramOptions_count(Bustools_opt &opt)
     std::cerr << "Error: EM algorithm and counting multiplicites are incompatible" << std::endl;
     ret = false;
   }
-  
+
   if (opt.umi_gene_collapse && opt.count_cm)
   {
     std::cerr << "Error: Gene-level collapsing of UMIs and counting multiplicites are incompatible" << std::endl;
@@ -1678,6 +1696,7 @@ void Bustools_correct_Usage()
             << "-w, --whitelist       File of whitelisted barcodes to correct to" << std::endl
             << "-p, --pipe            Write to standard output" << std::endl
             << "-d, --dump            Dump uncorrected to corrected barcodes (optional)" << std::endl
+            << "-a, --ambiguous       Write barcodes that are ambiguous to multiple whitelist barcodes (optional)" << std::endl
             << "-s, --split           Split the whitelist and correct each half independently (optional)" << std::endl
             << std::endl;
 }
