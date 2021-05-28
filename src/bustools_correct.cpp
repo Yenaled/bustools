@@ -577,7 +577,7 @@ void bustools_correct(Bustools_opt &opt)
               if (bd.barcode != old_ambiguous_barcode)
               {
                 of_ambiguous << binaryToString(bd.barcode, bclen) << "\n";
-                old_barcode = bd.barcode;
+                old_ambiguous_barcode = bd.barcode;
               }
             }
           }
