@@ -43,6 +43,38 @@ int search_for_mismatch(const Roaring &r, const size_t bc, const uint64_t b, uin
   return counts;
 }
 
+int search_for_mismatches(const Roaring &r, const size_t bc, const uint64_t b, uint64_t &c, std::vector<uint64_t> &arr)
+{
+  int counts = 0;
+  if (r.isEmpty())
+  {
+    return 0;
+  }
+  else
+  {
+    size_t sh = bc - 1;
+
+    for (size_t i = 0; i < bc; ++i)
+    {
+      for (uint64_t d = 1; d <= 3; d++)
+      {
+        uint64_t y = b ^ (d << (2 * sh));
+        if (r.contains(y))
+        {
+          if (counts == 0)
+          {
+            c = y;
+          }
+          arr.push_back(c);
+          counts++;
+        }
+      }
+      sh--;
+    }
+  }
+  return counts;
+}
+
 bool check_distance(std::vector<std::pair<Roaring, Roaring>> &correct, uint64_t b, const size_t bc_len)
 {
   // TODO: create a function that takes in a correct matrix and a partial barcode
@@ -576,7 +608,9 @@ void bustools_correct(Bustools_opt &opt)
             {
               if (bd.barcode != old_ambiguous_barcode)
               {
-                of_ambiguous << binaryToString(bd.barcode, bclen) << "\n";
+                // both lower and upper are wrong, corrected the form a whitelist bc
+                uint64_t wl_bc = (ubc << (2 * bc2)) | lbc;
+                of_ambiguous << binaryToString(bd.barcode, bclen) << "\t" << binaryToString(wl_bc, bclen) << "\n";
                 old_ambiguous_barcode = bd.barcode;
               }
             }
