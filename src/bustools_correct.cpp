@@ -616,7 +616,7 @@ void bustools_correct(Bustools_opt &opt)
                 {
                   // upper is super wrong lower is correct
                   of_ambiguous << binaryToString(bd.barcode, bclen) << "\t";
-                  bool first = false;
+                  bool first = true;
                   for (uint64_t ambig_bc : ambig_upper)
                   {
                     wl_bc = (ambig_bc << (2 * bc2)) | lb;
