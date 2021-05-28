@@ -616,12 +616,21 @@ void bustools_correct(Bustools_opt &opt)
                 {
                   // upper is super wrong lower is correct
                   of_ambiguous << binaryToString(bd.barcode, bclen) << "\t";
+                  bool first = false;
                   for (uint64_t ambig_bc : ambig_upper)
                   {
                     wl_bc = (ambig_bc << (2 * bc2)) | lb;
-                    std::cout << binaryToString(wl_bc, bclen) << ",";
+                    if (!first)
+                    {
+                      of_ambiguous << ",";
+                    }
+                    else
+                    {
+                      first = false;
+                    }
+                    of_ambiguous << binaryToString(wl_bc, bclen);
                   }
-                  std::cout << '\n';
+                  of_ambiguous << '\n';
                 }
                 else if (correct_lower > 1 && correct_upper == 0)
                 {
@@ -629,22 +638,40 @@ void bustools_correct(Bustools_opt &opt)
                   wl_bc = (ub << (2 * bc2)) | lbc;
                   // upper is super wrong lower is correct
                   of_ambiguous << binaryToString(bd.barcode, bclen) << "\t";
+                  bool first = true;
                   for (uint64_t ambig_bc : ambig_lower)
                   {
                     wl_bc = (ub << (2 * bc2)) | ambig_bc;
-                    std::cout << binaryToString(wl_bc, bclen) << ",";
+                    if (!first)
+                    {
+                      of_ambiguous << ",";
+                    }
+                    else
+                    {
+                      first = false;
+                    }
+                    of_ambiguous << binaryToString(wl_bc, bclen);
                   }
-                  std::cout << '\n';
+                  of_ambiguous << '\n';
                 }
                 else if (correct_lower > 1 && correct_upper > 1)
                 {
                   // both lower and upper are super wrong
                   // LOWER FIXED
                   of_ambiguous << binaryToString(bd.barcode, bclen) << "\t";
+                  bool first = true;
                   for (uint64_t ambig_bc : ambig_upper)
                   {
                     wl_bc = (ambig_bc << (2 * bc2)) | lb;
-                    std::cout << binaryToString(wl_bc, bclen) << ",";
+                    if (!first)
+                    {
+                      of_ambiguous << ",";
+                    }
+                    else
+                    {
+                      first = false;
+                    }
+                    of_ambiguous << binaryToString(wl_bc, bclen);
                   }
 
                   // UPPER fixed
@@ -653,9 +680,9 @@ void bustools_correct(Bustools_opt &opt)
                   for (uint64_t ambig_bc : ambig_lower)
                   {
                     wl_bc = (ub << (2 * bc2)) | ambig_bc;
-                    std::cout << binaryToString(wl_bc, bclen) << ",";
+                    of_ambiguous << "," << binaryToString(wl_bc, bclen);
                   }
-                  std::cout << '\n';
+                  of_ambiguous << '\n';
                 }
 
                 old_ambiguous_barcode = bd.barcode;
