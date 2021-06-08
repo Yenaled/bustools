@@ -269,6 +269,12 @@ void bustools_count(Bustools_opt &opt) {
         if (opt.count_gene_multimapping) {
           for (auto x : glist) {
             column_vp.push_back({x, (opt.count_raw_counts ? counts : 1.0)/gn});
+            if (gn > 1) {
+              std::cout << x << ",";
+            }
+          }
+          if (gn > 1)  {
+            std::cout << std::endl;
           }
           //Fill in histograms for prediction.
           if (opt.count_gen_hist) {
