@@ -267,13 +267,19 @@ void bustools_count(Bustools_opt &opt) {
       }
       if (gn > 0) {
         if (opt.count_gene_multimapping) {
+          bool sdf = false;
           for (auto x : glist) {
             column_vp.push_back({x, (opt.count_raw_counts ? counts : 1.0)/gn});
-            if (gn > 1) {
+            if (gn > 1 && x == 3631) { // interested in gene 3631
               std::cout << x << ",";
+              sdf = true;
             }
           }
-          if (gn > 1)  {
+          if (sdf)  {
+            std::cout << " : ";
+            for (int c = 0; c < ecs.size(); c++) {
+              std::cout << ecs[c] << ",";
+            }
             std::cout << std::endl;
           }
           //Fill in histograms for prediction.
