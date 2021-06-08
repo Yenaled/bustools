@@ -270,7 +270,7 @@ void bustools_count(Bustools_opt &opt) {
           bool sdf = false;
           for (auto x : glist) {
             column_vp.push_back({x, (opt.count_raw_counts ? counts : 1.0)/gn});
-            if (gn > 1 && x == 3631) { // interested in gene 3631
+            if (gn > 1 && x == 3629) { // interested in gene 3631
               std::cout << x << ",";
               sdf = true;
             }
