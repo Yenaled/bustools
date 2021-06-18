@@ -5,6 +5,11 @@
 #include <unordered_map>
 #include <sstream>
 #include <iostream>
+#include <zlib.h>
+
+#include "kseq.h"
+
+KSEQ_INIT(gzFile, gzread);
 
 uint64_t stringToBinary(const std::string &s, uint32_t &flag) {
   return stringToBinary(s.c_str(), s.size(), flag);
@@ -186,6 +191,35 @@ bool parseTranscripts(const std::string &filename, std::unordered_map<std::strin
     i++;
   }
   return true;
+}
+
+bool parseFasta(const std::string &filename, const std::unordered_map<std::string, int32_t> &txnames, std::unordered_map<int32_t, std::pair <std::string, std::string> > &txseqs) {
+  gzFile fp = 0;
+  kseq_t *seq;
+  int l = 0;
+  bool ret = true;
+  fp = gzopen(filename.c_str(), "r");
+  seq = kseq_init(fp);
+  while (true) {
+    l = kseq_read(seq);
+    if (l <= 0) {
+      break;
+    }
+    auto it = txnames.find(seq->name.s);
+    if (it == txnames.end()) {
+      std::cerr << "Error: transcript " << seq->name.s << " found in FASTA file but not in transcript list" << std::endl;
+      ret = false;
+      break;
+    }
+    txseqs.insert({it->second, {seq->name.s, seq->seq.s}});
+  }
+  if (ret && txseqs.size() != txnames.size()) {
+    std::cerr << "Error: Found " << txseqs.size() << " entries in FASTA file but " << txnames.size() << " in transcript list" << std::endl;
+    ret = false;
+  }
+  gzclose(fp);
+  fp=0;
+  return ret;
 }
 
 bool parseTxCaptureList(const std::string &filename, std::unordered_map<std::string, int32_t> &txnames, std::unordered_set<uint64_t> &captures) {

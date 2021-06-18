@@ -37,6 +37,7 @@
 #include "bustools_predict.h"
 #include "bustools_collapse.h"
 #include "bustools_clusterhist.h"
+#include "bustools_tempo.h"
 
 int my_mkdir(const char *path, mode_t mode)
 {
@@ -944,6 +945,72 @@ void parse_ProgramOptions_extract(int argc, char **argv, Bustools_opt &opt)
       break;
     case 'p':
       opt.stream_out = true;
+      break;
+    default:
+      break;
+    }
+  }
+  
+  /* All other argumuments are (sorted) BUS files. */
+  while (optind < argc)
+    opt.files.push_back(argv[optind++]);
+  
+  if (opt.files.size() == 1 && opt.files[0] == "-")
+  {
+    opt.stream_in = true;
+  }
+}
+
+void parse_ProgramOptions_tempo(int argc, char **argv, Bustools_opt &opt)
+{
+  
+  /* Parse options. */
+  const char *opt_string = "o:f:N:pb:t:e:T:F:";
+
+  static struct option long_options[] = {
+    {"output", required_argument, 0, 'o'},
+    {"fastq", required_argument, 0, 'f'},
+    {"nFastqs", required_argument, 0, 'N'},
+    {"paired", no_argument, 0, 'p'},
+    {"batch", required_argument, 0, 'b'},
+    {"threads", required_argument, 0, 't'},
+    {"ecmap", required_argument, 0, 'e'},
+    {"txnames", required_argument, 0, 'T'},
+    {"fasta", required_argument, 0, 'F'},
+    {0, 0, 0, 0}};
+  
+  int option_index = 0, c;
+  
+  while ((c = getopt_long(argc, argv, opt_string, long_options, &option_index)) != -1)
+  {
+    switch (c)
+    {
+    case 'o':
+      opt.output = optarg;
+      break;
+    case 'f':
+      opt.fastq = parseList(optarg);
+      break;
+    case 'N':
+      opt.nFastqs = std::stoi(optarg);
+      break;
+    case 'p':
+      opt.fastq_paired = true;
+      break;
+    case 'b':
+      opt.batch_file = optarg;
+      break;
+    case 't':
+      opt.threads = atoi(optarg);
+      break;
+    case 'e':
+      opt.count_ecs = optarg;
+      break;
+    case 'T':
+      opt.count_txp = optarg;
+      break;
+    case 'F':
+      opt.fasta = optarg;
       break;
     default:
       break;
@@ -2303,6 +2370,216 @@ bool check_ProgramOptions_extract(Bustools_opt &opt)
   return ret;
 }
 
+bool check_ProgramOptions_tempo(Bustools_opt &opt)
+{
+  bool ret = true;
+  
+  if (opt.output.empty())
+  {
+    std::cerr << "Error: missing output directory" << std::endl;
+  }
+  else
+  {
+    // check if output directory exists or if we can create it
+    struct stat stFileInfo;
+    auto intStat = stat(opt.output.c_str(), &stFileInfo);
+    if (intStat == 0)
+    {
+      // file/dir exits
+      if (!S_ISDIR(stFileInfo.st_mode))
+      {
+        std::cerr << "Error: file " << opt.output << " exists and is not a directory" << std::endl;
+        ret = false;
+      }
+    }
+    else
+    {
+      // create directory
+      if (my_mkdir(opt.output.c_str(), 0777) == -1)
+      {
+        std::cerr << "Error: could not create directory " << opt.output << std::endl;
+        ret = false;
+      }
+    }
+  }
+  
+  size_t max_threads = std::thread::hardware_concurrency();
+  if (opt.threads <= 0)
+  {
+    std::cerr << "Error: Number of threads cannot be less than or equal to 0" << std::endl;
+    ret = false;
+  }
+  else if (opt.threads > max_threads)
+  {
+    std::cerr << "Warning: Number of threads cannot be greater than or equal to " << max_threads
+              << ". Setting number of threads to " << max_threads << std::endl;
+    opt.threads = max_threads;
+  }
+  
+  if (opt.files.size() == 0)
+  {
+    std::cerr << "Error: Missing BUS input file" << std::endl;
+    ret = false;
+  }
+  else if (opt.files.size() == 1)
+  {
+    if (!opt.stream_in)
+    {
+      for (const auto &it : opt.files)
+      {
+        if (!checkFileExists(it))
+        {
+          std::cerr << "Error: File not found, " << it << std::endl;
+          ret = false;
+        }
+      }
+    }
+  }
+  else
+  {
+    std::cerr << "Error: Only one input file allowed" << std::endl;
+    ret = false;
+  }
+
+  if (!opt.batch_file.empty() && opt.fastq.size() != 0) {
+    std::cerr << "Error: cannot supply both a batch file and read files " << std::endl;
+    ret = false;
+  } else if (!opt.batch_file.empty()) {
+    if (!checkFileExists(opt.batch_file)) {
+      std::cerr << "Error: file not found " << opt.batch_file << std::endl;
+      ret = false;
+    }
+    if (opt.fastq_paired) {
+      std::cerr << "Ignoring --paired; will infer single/paired-end directly from batch file" << std::endl;
+    }
+    if (opt.nFastqs != 0) {
+      std::cerr << "Ignoring --nFastqs; will infer directly from batch file" << std::endl;
+    }
+    // open the file, parse and fill the fastq values
+    std::ifstream bfile(opt.batch_file);
+    std::string line;
+    std::string id,f1,f2;
+    bool read_first_batch_file_line = false;
+    while (std::getline(bfile,line)) {
+      if (line.size() == 0) {
+        continue;
+      }
+      std::stringstream ss(line);
+      ss >> id;
+      if (id[0] == '#') {
+        continue;
+      }
+      ss >> f1 >> f2;
+      if (!read_first_batch_file_line) {
+        if (f2.empty()) {
+          opt.fastq_paired = false;
+          opt.nFastqs = 1;
+        } else {
+          opt.fastq_paired = true;
+          opt.nFastqs = 2;
+        }
+        read_first_batch_file_line = true;
+      }
+      if (!opt.fastq_paired) {
+        opt.fastq.push_back(f1);
+        if (!f2.empty()) {
+          std::cerr << "Error: batch file malformatted" << std::endl;
+          ret = false;
+          break;
+        }
+      } else {
+        opt.fastq.push_back(f1);
+        opt.fastq.push_back(f2);
+        if (f2.empty()) {
+          std::cerr << "Error: batch file malformatted" << std::endl;
+          ret = false;
+          break;
+        }
+      }
+      f1.clear();
+      f2.clear();
+    }
+  }
+  if (opt.fastq.size() == 0)
+  {
+    std::cerr << "Error: Missing FASTQ file(s)" << std::endl;
+    ret = false;
+  }
+  else
+  {
+    for (const auto &f : opt.fastq)
+    {
+      if (!checkFileExists(f))
+      {
+        std::cerr << "Error: File not found, " << f << std::endl;
+        ret = false;
+      }
+    }
+  }
+  
+  if (opt.nFastqs == 0)
+  {
+    std::cerr << "Error: nFastqs is zero" << std::endl;
+    ret = false;
+  }
+  else
+  {
+    if (opt.fastq.size() % opt.nFastqs != 0)
+    {
+      std::cerr << "Error: incorrect number of FASTQ file(s)" << std::endl;
+      ret = false;
+    }
+    if (opt.fastq_paired && opt.fastq.size() % 2 != 0) {
+      std::cerr << "Error: FASTQ files are paired-end but an odd number of FASTQ files was supplied" << std::endl;
+      ret = false;
+    }
+  }
+  
+  if (opt.count_ecs.size() == 0)
+  {
+    std::cerr << "Error: missing equivalence class mapping file" << std::endl;
+    ret = false;
+  }
+  else
+  {
+    if (!checkFileExists(opt.count_ecs))
+    {
+      std::cerr << "Error: File not found " << opt.count_ecs << std::endl;
+      ret = false;
+    }
+  }
+  
+  if (opt.count_txp.size() == 0)
+  {
+    std::cerr << "Error: missing transcript name file" << std::endl;
+    ret = false;
+  }
+  else
+  {
+    if (!checkFileExists(opt.count_txp))
+    {
+      std::cerr << "Error: File not found " << opt.count_txp << std::endl;
+      ret = false;
+    }
+  }
+  
+  if (opt.fasta.size() == 0)
+  {
+    std::cerr << "Error: missing FASTA file" << std::endl;
+    ret = false;
+  }
+  else
+  {
+    if (!checkFileExists(opt.fasta))
+    {
+      std::cerr << "Error: File not found " << opt.fasta << std::endl;
+      ret = false;
+    }
+  }
+  
+  return ret;
+}
+
 void Bustools_Usage()
 {
   std::cout << "bustools " << BUSTOOLS_VERSION << std::endl
@@ -2326,6 +2603,7 @@ void Bustools_Usage()
             << "collapse        Turn BUS files into a BUG file" << std::endl
             << "clusterhist     Create UMI histograms per cluster" << std::endl
             << "linker          Remove section of barcodes in BUS files" << std::endl
+            << "tempo           Process BUS files from metabolic labeling assays" << std::endl
             << "version         Prints version number" << std::endl
             << "cite            Prints citation information" << std::endl
             << std::endl
@@ -2554,6 +2832,24 @@ void Bustools_extract_Usage()
             << "-o, --output          Output directory for FASTQ files" << std::endl
             << "-f, --fastq           FASTQ file(s) from which to extract reads (comma-separated list)" << std::endl
             << "-N, --nFastqs         Number of FASTQ file(s) per run" << std::endl
+            << std::endl;
+}
+
+void Bustools_tempo_Usage()
+{
+  std::cout << "Usage: bustools tempo [options] sorted-bus-file" << std::endl
+            << "  Note: BUS file should be sorted by flag using bustools sort --flags-bc" << std::endl
+            << std::endl
+            << "Options: " << std::endl
+            << "-o, --output          Output directory" << std::endl
+            << "-f, --fastq           FASTQ file(s) from which to extract reads (comma-separated list)" << std::endl
+            << "-N, --nFastqs         Number of FASTQ file(s) per run" << std::endl
+            << "-p, --paired          Process paired-end reads" << std::endl
+            << "-b, --batch=FILE      Process FASTQ files listed in FILE" << std::endl
+            << "-e, --ecmap           File for mapping equivalence classes to transcripts" << std::endl
+            << "-T, --txnames         File with names of transcripts" << std::endl
+            << "-F, --fasta           FASTA file of transcript sequences" << std::endl
+            << "-t, --threads         Number of threads to use" << std::endl
             << std::endl;
 }
 
@@ -2912,6 +3208,24 @@ int main(int argc, char **argv)
       else
       {
         Bustools_extract_Usage();
+        exit(1);
+      }
+    }
+    else if (cmd == "tempo")
+    {
+      if (disp_help)
+      {
+        Bustools_tempo_Usage();
+        exit(0);
+      }
+      parse_ProgramOptions_tempo(argc - 1, argv + 1, opt);
+      if (check_ProgramOptions_tempo(opt))
+      { //Program options are valid
+        bustools_tempo(opt);
+      }
+      else
+      {
+        Bustools_tempo_Usage();
         exit(1);
       }
     }

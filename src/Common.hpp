@@ -50,6 +50,11 @@ struct Bustools_opt
   /* extract */
   int nFastqs;
   std::vector<std::string> fastq;
+  
+  /* tempo */
+  bool fastq_paired = false;
+  std::string batch_file;
+  std::string fasta;
 
   char type;
 

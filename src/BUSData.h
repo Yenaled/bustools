@@ -52,6 +52,7 @@ bool parseTxCaptureList(const std::string &filename, std::unordered_map<std::str
 bool parseBcUmiCaptureList(const std::string &filename, std::unordered_set<uint64_t> &captures);
 bool parseFlagsCaptureList(const std::string &filename, std::unordered_set<uint64_t> &captures);
 bool parseTranscripts(const std::string &filename, std::unordered_map<std::string, int32_t> &txnames);
+bool parseFasta(const std::string &filename, const std::unordered_map<std::string, int32_t> &txnames, std::unordered_map<int32_t, std::pair <std::string, std::string> > &txseqs);
 
 bool parse_ProjectMap(const std::string &filename, std::unordered_map<uint64_t, uint64_t> &project_map);
 
