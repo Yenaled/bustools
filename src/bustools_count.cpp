@@ -325,6 +325,9 @@ void bustools_count(Bustools_opt &opt) {
               k--;
             }
           }
+          if (glist.size() == 0) {
+            intersect_genes_of_ecs(ecs_within_molecule, ec2genes, glist);
+          }
           gn = glist.size();
           if (gn > 0) {
             if (opt.count_gene_multimapping) {
@@ -880,3 +883,4 @@ void bustools_count_mult(Bustools_opt &opt) {
 
   //std::cerr << "Read in " << nr << " BUS records" << std::endl;
 }
+
